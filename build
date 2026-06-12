@@ -1,0 +1,33 @@
+#!/bin/bash
+
+echo getting the repos....
+echo getting class
+git clone https://github.com/lesgourg/class_public.git
+echo done.
+
+echo getting script
+git clone https://bitbucket.org/rctirthankar/script
+echo done.
+
+echo getting music
+git clone https://bitbucket.org/ohahn/music.git
+echo done.
+
+
+echo building binaries
+echo --------------------
+
+cd class_public
+make class -j
+cd ..
+
+cd music
+make
+cd ..
+
+cd  script
+pip install . --break-system-packages
+cd ..
+
+echo binaries built
+echo ---------------------------------------------------

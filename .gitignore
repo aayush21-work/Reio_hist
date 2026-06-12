@@ -1,0 +1,12 @@
+class_public/
+music/
+script/
+reference/
+script_files/
+script_files*/
+class_public/output/
+
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
