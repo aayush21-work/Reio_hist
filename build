@@ -31,3 +31,11 @@ cd ..
 
 echo binaries built
 echo ---------------------------------------------------
+
+
+echo relocating ini files
+
+mv reiotest.ini reiotest_1.ini $(PWD)/class_public
+mv reiotest.conf $(PWD)/music
+
+echo Done.
