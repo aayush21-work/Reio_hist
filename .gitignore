@@ -5,6 +5,7 @@ reference/
 script_files/
 script_files*/
 class_public/output/
+output_pipeline/
 
 __pycache__/
 *.pyc

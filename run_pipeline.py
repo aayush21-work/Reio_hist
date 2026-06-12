@@ -10,7 +10,7 @@ import script
 import sys
 from multiprocessing import Pool
 
-PROJECT_DIR     = Path("/home/aayush/PROJECT_NCRA")
+PROJECT_DIR     = Path(__file__).resolve().parent
  
 CLASS_DIR       = PROJECT_DIR/"class_public"
 CLASS_INI       = CLASS_DIR/"reiotest.ini"          
