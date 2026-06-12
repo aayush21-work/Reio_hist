@@ -146,7 +146,7 @@ def run_pipeline(class_ini, music_conf):
         # CLASS
         set_key(class_ini, r"^\s*z_pk\s*=.*", f"z_pk = {z}")
         run_tool(["./class", class_ini_name], cwd=CLASS_DIR, tag=f"CLASS z={z}")
-        reformat_tk(CLASS_OUT / "reiotest_tk.dat",
+        reformat_tk(CLASS_OUT / "reiotest.ini_run_tk.dat",
                     CLASS_OUT / "output_camb13.dat")
  
         # MUSIC
