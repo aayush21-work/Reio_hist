@@ -177,7 +177,7 @@ info = {
         },
     },
     "likelihood": {
-        #"uvlf": {"external": UVLFLike},
+        "uvlf": {"external": UVLFLike},
         "planck_2018_lowl.TT": None,
         "planck_2018_lowl.EE": None,
         "planck_2018_highl_plik.TTTEEE_lite": None,
