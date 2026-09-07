@@ -1,9 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os, sys
+from pathlib import Path
 
-PROJECT = "/home/aayush/PROJECT_NCRA"
-os.chdir(PROJECT + "/data_files")
+PROJECT = str(Path(__file__).resolve().parent)
+os.chdir(os.path.join(PROJECT, "data_files"))
 sys.path.insert(0, PROJECT)
 import reion_uvlf_funcs as rf
 from classy import Class

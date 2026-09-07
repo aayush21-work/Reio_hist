@@ -163,7 +163,7 @@ info = {
                        "ref": 15, "proposal": 0.01, "latex": r"\zeta"},
         "log10_Mmin": {"prior": {"min": 7.0,  "max": 15.0},
                        "ref": 9, "proposal": 0.01, "latex": r"\log_{10} M_{\min}"},
-        "H0":        67.36,  # same config as global.ini, to do make it automatic to load from global.ini 
+        "H0":        67.36,  
         "omega_b":   0.02237,
         "omega_cdm": 0.1200,
         "n_s":       0.9649,

@@ -1,15 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os, sys
-import numpy as np
+from pathlib import Path
 from cobaya.model import get_model
 import mcmc_uvlf_cmb as M
 model = get_model(M.info)
 
-
-PROJECT = "/home/aayush/PROJECT_NCRA"
-DATAFILE = PROJECT + "/Planck_EE_unbinned.txt"
-os.chdir(PROJECT + "/data_files")
+PROJECT = str(Path(__file__).resolve().parent)
+DATAFILE = os.path.join(PROJECT, "data_files", "Planck_EE_unbinned.txt")
+os.chdir(os.path.join(PROJECT, "data_files"))
 sys.path.insert(0, PROJECT)
 import reion_uvlf_4params as uvlf
 from classy import Class

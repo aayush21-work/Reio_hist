@@ -21,7 +21,7 @@ echo "building binaries"
 echo "--------------------"
 
 cd "$ROOT/class_public"
-make class -j
+make -j
 cd "$ROOT"
 
 cd "$ROOT/music"
