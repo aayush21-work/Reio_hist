@@ -6,7 +6,7 @@ from cobaya.theory import Theory
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import run_pipeline as P
 
-PACKAGES = "/home/aayush/cobaya_packages"
+PACKAGES = str(Path(__file__).resolve().parent / "cobaya_packages")
 
 
 def set_global(zeta, log10_Mmin):
