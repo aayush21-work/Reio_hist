@@ -19,6 +19,7 @@ output/
 *.MD
 *.md
 *.swp
+*.log
 
 __pycache__/
 *.pyc
