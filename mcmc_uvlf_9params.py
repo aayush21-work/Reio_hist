@@ -15,7 +15,7 @@ sys.path.insert(0, str(PROJECT))
 os.chdir(DATA_DIR)    
 
 
-import reion_uvlf_4params as uvlf
+import reion_uvlf_9params as uvlf
 
 
 
@@ -29,6 +29,8 @@ DZ_ANCHOR     = 0.4
 
 class UVLFReio(Theory):
     params = {"lsum": None, "ldiff": None, "l2": None, "l3": None,
+              "asum": None, "adiff": None, "log10_fesc10": None,
+              "alpha_esc": None, "log10Mcrit": None,
               "H0": None, "omega_b": None, "omega_cdm": None,
               "n_s": None, "A_s": None}
 
@@ -50,6 +52,11 @@ class UVLFReio(Theory):
         ldiff = params["ldiff"]
         l2    = params["l2"]
         l3    = params["l3"]
+        asum         = params["asum"]
+        adiff        = params["adiff"]
+        log10_fesc10 = params["log10_fesc10"]
+        alpha_esc    = params["alpha_esc"]
+        log10Mcrit   = params["log10Mcrit"]
         H0    = params["H0"]
 
 
@@ -83,8 +90,10 @@ class UVLFReio(Theory):
 
         # UVLF + QHI model 
         try:
-            logl, derived = uvlf.log_likelihood(lsum, ldiff, l2, l3, lnk, lnpk,omega_m, omega_l, h, omega_b,
-             YHe=0.24)
+            logl, derived = uvlf.log_likelihood(
+                lsum, ldiff, l2, l3,
+                asum, adiff, log10_fesc10, alpha_esc, log10Mcrit,
+                lnk, lnpk, omega_m, omega_l, h, omega_b, YHe=0.24)
         except Exception as e:
             self.log.warning(f"UVLF model failed: {e!r}")
             return False
@@ -177,7 +186,7 @@ info = {
         },
     },
     "likelihood": {
-        #"uvlf": {"external": UVLFLike},
+        "uvlf": {"external": UVLFLike},
         "planck_2018_lowl.TT": None,
         "planck_2018_lowl.EE": None,
         "planck_2018_highl_plik.TTTEEE_lite": None,
@@ -188,6 +197,12 @@ info = {
         "ldiff": {"prior": {"min": -2.0, "max": 1.0}, "ref": -0.75, "proposal": 0.01, "latex": r"\ell_{\rm diff}"}, # -0.75
         "l2":    {"prior": {"min": 8, "max": 18.0}, "ref": 13, "proposal": 0.01, "latex": r"\ell_2"}, #8,18, ref:13
         "l3":    {"prior": {"min": -3.0, "max": 6}, "ref": 2.16, "proposal": 0.01, "latex": r"\ell_3"}, #0.5,6,ref:2.16
+        # astro params
+        "asum":         {"prior": {"min": 0.0, "max": 2.0},   "ref": 0.94376,   "proposal": 0.01, "latex": r"a_{\rm sum}"},
+        "adiff":        {"prior": {"min": -2.0, "max": 2.0},  "ref": 0.28934,   "proposal": 0.01, "latex": r"a_{\rm diff}"},
+        "log10_fesc10": {"prior": {"min": -2.0, "max": 2.0},  "ref": -0.8122,   "proposal": 0.01, "latex": r"\log_{10} f_{\rm esc,10}"},
+        "alpha_esc":    {"prior": {"min": -2.0, "max": 2.0},  "ref": -0.078249, "proposal": 0.01, "latex": r"\alpha_{\rm esc}"},
+        "log10Mcrit":   {"prior": {"min": 8.0, "max": 15.0},  "ref": 10.174,    "proposal": 0.1,  "latex": r"\log_{10} M_{\rm crit}"},
         # cosmology 
         # "H0":        {"prior": {"min": 60., "max": 75.}, "ref": 65.0, "proposal": 0.5, "latex": r"H_0"},
         # "omega_b":   {"prior": {"min": 0.01, "max": 0.5}, "ref": 0.02, "proposal": 0.0001, "latex": r"\omega_b"},
@@ -199,14 +214,14 @@ info = {
         "H0" : 67.4 ,
         "omega_b" : 0.0224 ,
         "omega_cdm": 0.120,
-        #"n_s" : 0.965,
+        #"n_s" : 0.965,s
         #"logA" : 3.043,
         "A_planck" : 1,
         # derived 
         "tau_e":     {"latex": r"\tau_e"},
     },
     "sampler": {"mcmc": {"Rminus1_stop": 0.01, "learn_proposal": True, "max_samples": 200000}},
-    "output": str(PROJECT / "chains" / "uvlf_cmb_without_uvlf"),
+    "output": str(PROJECT / "chains" / "uvlf_cmb_9params"),
     "packages_path": PACKAGES,
     "resume": True,
 }

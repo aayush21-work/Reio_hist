@@ -1,20 +1,37 @@
 import numpy as np
 import scipy as sp
 from transferfunction import *
+import transferfunction
 
 rho_crit_by_hsq = 2.7755e11  ## in Msun / Mpc^3
+
+## If True, get_massfunction evaluates sigma / dlnsigmadlnm / growth factor
+## from splines precomputed once per likelihood evaluation
+## (see transferfunction.reset_step_cache / massfunction.begin_step).
+USE_CACHED_HMF = True
+
+
+def begin_step():
+    """"Call at the start of every likelihood evaluation: invalidates the HMF cache."""
+    transferfunction.reset_step_cache()
 
 def get_massfunction(log10Mmin, log10Mmax, dlog10m, z, lnk, lnpk, cdict, fit="ST", delta_c = 1.686):
 
     log10M = np.arange(log10Mmin, log10Mmax, dlog10m)
     M = 10. ** log10M
 
-    dpl = growth_factor(z, cdict)
+    if USE_CACHED_HMF:
+        sgma = transferfunction.cached_sigma(M, lnpk, lnk, cdict)
+        dlsigmadlm = transferfunction.cached_dlnsigmadlnm(M, lnpk, lnk, cdict)
+        dpl = transferfunction.cached_growth_factor(z, cdict)
+    else:
+        dpl = growth_factor(z, cdict)
+        mean_dens = cdict["omega_M_0"] * rho_crit_by_hsq
+        sgma = sigma(M, lnpk, lnk, mean_dens) ## sigma at z = 0
+        dlsigmadlm = dlnsigmadlnm(M, sgma, lnpk, lnk, mean_dens)
+
     delta_c_z = delta_c / dpl
     mean_dens = cdict["omega_M_0"] * rho_crit_by_hsq
-
-    sgma = sigma(M, lnpk, lnk, mean_dens) ## sigma at z = 0
-    dlsigmadlm = dlnsigmadlnm(M, sgma, lnpk, lnk, mean_dens)
 
     nu = (delta_c_z / sgma) ** 2
     fsigma = get_fsigma(sgma, fit, delta_c_z, z)
@@ -187,12 +204,18 @@ def get_massfunction_ellipsoidal(log10Mmin, log10Mmax, dlog10m, z, lnk, lnpk, cd
     log10M = np.arange(log10Mmin, log10Mmax, dlog10m)
     M = 10. ** log10M
 
-    dpl = growth_factor(z, cdict)
+    if USE_CACHED_HMF:
+        sgma = transferfunction.cached_sigma(M, lnpk, lnk, cdict)
+        dlsigmadlm = transferfunction.cached_dlnsigmadlnm(M, lnpk, lnk, cdict)
+        dpl = transferfunction.cached_growth_factor(z, cdict)
+    else:
+        dpl = growth_factor(z, cdict)
+        mean_dens = cdict["omega_M_0"] * rho_crit_by_hsq
+        sgma = sigma(M, lnpk, lnk, mean_dens) ## sigma at z = 0
+        dlsigmadlm = dlnsigmadlnm(M, sgma, lnpk, lnk, mean_dens)
+
     delta_c_z = delta_c / dpl
     mean_dens = cdict["omega_M_0"] * rho_crit_by_hsq
-
-    sgma = sigma(M, lnpk, lnk, mean_dens) ## sigma at z = 0
-    dlsigmadlm = dlnsigmadlnm(M, sgma, lnpk, lnk, mean_dens)
 
     fs = get_fs_cond_ellipsoidal(sgma ** 2, 0., 0., delta_c_z, a=a, beta=beta, alpha=alpha)
     nu = (delta_c_z / sgma) ** 2

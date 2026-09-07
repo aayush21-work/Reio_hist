@@ -2,6 +2,7 @@
 class_public/
 music/
 script/
+script_files/
 
 
 data_files/
@@ -15,7 +16,9 @@ output/
 *.dat
 *.png
 *.pdf
-
+*.MD
+*.md
+*.swp
 
 __pycache__/
 *.pyc

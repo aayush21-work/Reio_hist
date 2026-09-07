@@ -2,8 +2,11 @@ import numpy as np
 import scipy as sp
 import collections
 from scipy import interpolate
+from scipy.interpolate import InterpolatedUnivariateSpline
 
 from colossus.cosmology import cosmology
+
+rho_crit_by_hsq = 2.7755e11  ## in Msun / Mpc^3
 
 def initialize_power_spectrum(lnkmin, lnkmax, numbin_lnk, cdict, tf='EH', mDM=0.):
     lnk = np.linspace(lnkmin, lnkmax, num = numbin_lnk) 
@@ -205,4 +208,116 @@ def power_to_corr(lnk, lnpk, R):
         corr[i] = (0.5 / np.pi ** 2) * sp.integrate.simpson(integ, dx=dlnkk)
 
     return corr
+
+
+# =============================================================================
+# Per-step caching for the UVLF / reionisation MCMC hot path
+#
+# Within a single likelihood evaluation the power spectrum and cosmology are
+# FIXED, so sigma(M), dlnsigmadlnm(M) and the growth factor D(z) need to be
+# computed only once. The original code re-did thousands of scipy quadratures
+# (and the z-dependent grids) on every get_massfunction() call. We precompute
+# them on fixed fine grids and spline-fit instead.
+# =============================================================================
+
+# log10(M/[Msun/h]) grid: 6.0 comfortably covers Mcool(z)*h for z <= 20
+# (min ~10^7.3) and 15.5 covers the largest mass used anywhere.
+_LOG10M_GRID_LO = 6.0
+_LOG10M_GRID_HI = 15.5
+_DLOG10M_GRID = 0.01
+_Z_GRID = None  # set by reset_step_cache below
+_DZ_SPL_NUM = 201
+
+_step_cache = {
+    "built_token": None,   # object identity; forces rebuild after reset_step_cache()
+    "lnk": None, "lnpk": None, "mean_dens": None,
+    "sig_sp": None,        # spline log10(sigma)         vs log10(M/[Msun/h])
+    "dsig_sp": None,       # spline dlnsigmadlnm         vs log10(M/[Msun/h])
+    "dplus_sp": None,      # spline D+(z)                vs z
+    "dplus_0": None,
+}
+
+_STEP_TOKEN = object()
+
+
+def reset_step_cache():
+    global _STEP_TOKEN, _Z_GRID
+    _STEP_TOKEN = object()
+    _Z_GRID = np.linspace(0.0, 20.0, _DZ_SPL_NUM)
+    _step_cache["built_token"] = None
+
+
+def _sigma_grid(M_grid, lnpk, lnk, mean_dens):
+    """sigma(M) for many M at once (vectorized, identical scheme to sigma())."""
+    dlnk = lnk[1] - lnk[0]
+    R = mass_to_radius(M_grid, mean_dens)
+    kR = np.exp(lnk)[None, :] * R[:, None]
+    Wsq = np.ones_like(kR)
+    mask = kR > 1.4e-6
+    Wsq[mask] = (3.0 * (np.sin(kR[mask]) / kR[mask] ** 3
+                 - np.cos(kR[mask]) / kR[mask] ** 2)) ** 2
+    kcube_pk = np.exp(lnpk + 3.0 * lnk)
+    integrand = kcube_pk[None, :] * Wsq
+    sigmasq = (0.5 / np.pi ** 2) * sp.integrate.trapezoid(integrand, dx=dlnk, axis=1)
+    return np.sqrt(sigmasq)
+
+
+def _dlnsigmadlnm_grid(M_grid, sgma, lnpk, lnk, mean_dens):
+    """dlnsigmadlnm for many M at once (vectorized, identical scheme to dlnsigmadlnm())."""
+    dlnk = lnk[1] - lnk[0]
+    R = mass_to_radius(M_grid, mean_dens)
+    kr = np.exp(lnk)[None, :] * R[:, None]
+    w = dw2dm(kr)  # derivative of W^2, elementwise -> (N, K)
+    integrand = w * np.exp(lnpk - lnk)[None, :]
+    return ((3.0 / (2.0 * sgma ** 2 * np.pi ** 2 * R ** 4))
+            * sp.integrate.simpson(integrand, dx=dlnk, axis=1))
+
+
+def _build_step_cache(lnk, lnpk, cdict):
+    mean_dens = cdict["omega_M_0"] * rho_crit_by_hsq
+    def_z_grid = _Z_GRID if _Z_GRID is not None else np.linspace(0.0, 20.0, _DZ_SPL_NUM)
+
+    log10M_grid = np.arange(_LOG10M_GRID_LO, _LOG10M_GRID_HI, _DLOG10M_GRID)
+    M_grid = 10.0 ** log10M_grid
+
+    sgma = _sigma_grid(M_grid, lnpk, lnk, mean_dens)
+    dsig = _dlnsigmadlnm_grid(M_grid, sgma, lnpk, lnk, mean_dens)
+
+    dplus_arr = np.array([d_plus(z, cdict) for z in def_z_grid])
+    dplus_0 = d_plus(0.0, cdict)
+
+    c = _step_cache
+    c["built_token"] = _STEP_TOKEN
+    c["lnk"] = lnk
+    c["lnpk"] = lnpk
+    c["mean_dens"] = mean_dens
+    c["sig_sp"] = InterpolatedUnivariateSpline(log10M_grid, np.log(sgma), k=3, ext="extrapolate")
+    c["dsig_sp"] = InterpolatedUnivariateSpline(log10M_grid, dsig, k=3, ext="extrapolate")
+    c["dplus_sp"] = InterpolatedUnivariateSpline(def_z_grid, dplus_arr, k=3, ext="extrapolate")
+    c["dplus_0"] = dplus_0
+
+
+def _ensure_step_cache(lnk, lnpk, cdict):
+    c = _step_cache
+    mean_dens_now = cdict["omega_M_0"] * rho_crit_by_hsq
+    if (c["built_token"] is _STEP_TOKEN and c["lnk"] is lnk
+            and c["lnpk"] is lnpk and c["mean_dens"] == mean_dens_now):
+        return
+    _build_step_cache(lnk, lnpk, cdict)
+
+
+def cached_sigma(M, lnpk, lnk, cdict):
+    _ensure_step_cache(lnk, lnpk, cdict)
+    return np.exp(_step_cache["sig_sp"](np.log10(M)))
+
+
+def cached_dlnsigmadlnm(M, lnpk, lnk, cdict):
+    _ensure_step_cache(lnk, lnpk, cdict)
+    return _step_cache["dsig_sp"](np.log10(M))
+
+
+def cached_growth_factor(z, cdict):
+    if _step_cache["dplus_sp"] is None:
+        return growth_factor(z, cdict)
+    return _step_cache["dplus_sp"](z) / _step_cache["dplus_0"]
 
