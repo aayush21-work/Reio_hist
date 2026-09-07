@@ -3,19 +3,19 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 
-# echo "getting the repos...."
+echo "getting the repos...."
 
-# echo "getting class"
-# [ -d "$ROOT/class_public" ] || git clone https://github.com/lesgourg/class_public.git
-# echo "done."
+echo "getting class"
+[ -d "$ROOT/class_public" ] || git clone https://github.com/lesgourg/class_public.git
+echo "done."
 
-# echo "getting script"
-# [ -d "$ROOT/script" ] || git clone https://bitbucket.org/rctirthankar/script
-# echo "done."
+echo "getting script"
+[ -d "$ROOT/script" ] || git clone https://bitbucket.org/rctirthankar/script
+echo "done."
 
-# echo "getting music"
-# [ -d "$ROOT/music" ] || git clone https://bitbucket.org/ohahn/music.git
-# echo "done."
+echo "getting music"
+[ -d "$ROOT/music" ] || git clone https://bitbucket.org/ohahn/music.git
+echo "done."
 
 echo "building binaries"
 echo "--------------------"
