@@ -3,11 +3,10 @@
 This repository computes and constrains the epoch of reionization for a fixed
 (Planck-like) cosmology, using **two complementary tracks**:
 
-1. **A numerical track** (`run_pipeline.py`): a full CLASS -> MUSIC -> `script`
+1. **A numerical track** (`run_pipeline.py`): CLASS -> MUSIC -> `script`
    simulation pipeline that builds reionization boxes from N-body initial
    conditions and extracts `Q_HII(z)`/`x_e(z)`.
-2. **An analytic + MCMC track** (`reion_uvlf_*`, `mcmc_uvlf_*`): a semi-analytic
-   reionization model driven by a halo mass function and the UV luminosity
+2. **An analytic + MCMC track** (`reion_uvlf_*`, `mcmc_uvlf_*`): reionization model driven by a halo mass function and the UV luminosity
    function (UVLF), whose free astrophysics parameters are constrained against
    UVLF + `Q_HI` observations and the Planck 2018 CMB likelihoods with Cobaya.
 
@@ -87,9 +86,7 @@ CMB spectra (and `tau_e`) with the model's reionization history.
 **Working-directory convention:** most modules (`reion_uvlf_funcs.py`,
 `mcmc_uvlf_cmb.py`, `mcmc_uvlf_9params.py`) read their data files through
 *relative* paths from `data_files/` (several `os.chdir(DATA_DIR)` at import).
-Always run scripts and notebooks **from the repository root**, and do not leave
-the working directory changed midway through a notebook.
-
+Please run scripts and notebooks **from the repository root** .
 ---
 
 ## Setup & build
@@ -97,8 +94,8 @@ the working directory changed midway through a notebook.
 Requirements (see `requirements.txt`):
 
 - Linux (the build scripts and compiled binaries are Linux-only)
-- Python >= 3.10 (repo developed on 3.14), `pip`
-- C/C++ toolchain (`gcc`, `make`) for CLASS and MUSIC
+- Should support Python >= 3.12 (repo developed on 3.14), `pip`
+-  `gcc` and `make` required for CLASS and MUSIC
 
 ```bash
 # 1) install python deps
@@ -133,9 +130,7 @@ What `build.sh` does:
 `make -j` in CLASS, `make` in MUSIC, pip-installs `script`, and **moves** the
 ini files into place). Prefer `build.sh`.
 
-> Note: `cobaya_packages/` is gitignored, so a fresh clone must re-run the
-> `cobaya-install` step. Until then, the Cobaya notebooks/scripts that touch
-> the Planck likelihoods will fail with a "package not found" style error.
+
 
 ---
 
@@ -291,8 +286,7 @@ a0 = (asum + adiff)/2,   a1 = (asum - adiff)/2
 
 with `l2,l3` shared as `a2=l2`, `a3=l3`. `2*l1` is the total jump in
 `log10(f_star/c_star)`; `2*a1` in `alpha_star`. Fixed astrophysical constants
-live at the top of `reion_uvlf_funcs.py` (case-B recombination, clumping,
-ionising photons per solar mass, K_UV, Y_He = 0.24, ...).
+live at the top of `reion_uvlf_funcs.py` .
 
 ### Parameter sets
 
@@ -327,20 +321,9 @@ log_likelihood(..., lnk, lnpk, omega_m, omega_l, h, omega_b, YHe=0.24)
     -> (logL, derived)
 ```
 
-with `lnk = log(k / h)` (h/Mpc), `lnpk = log(P(k) * h^3)` at z=0. Internally:
+with `lnk = log(k / h)` (h/Mpc), `lnpk = log(P(k) * h^3)` at z=0.
 
-- `massfunction.begin_step()` resets the per-step HMF cache (see below);
-- computes the model reionization history `reionHist_model` -> `tau_e`;
-- builds model vs data arrays for the UVLF (all redshifts) and the
-  `Q_HI(z)` curve, returns chi^2 per block;
-- `logL = -0.5 * (chi2_UVLF + chi2_QHI)`, clamped to `-1e6` if not finite.
 
-`massfunction.begin_step()` is the entry point of the **per-step HMF cache**
-(`transferfunction.py`): sigma(M), dln(sigma)/dln M and the growth factor
-`D+(z)` are tabulated once per likelihood evaluation (fixed P(k)/cosmology) and
-splined, instead of recomputing ~60 000 quadratures per step. This is described
-in detail in `OPTIMISATION_NOTES_9PARAMS.md` (~10x end-to-end speed-up,
-numerically equivalent at ~1e-8).
 
 ### Running an MCMC
 
