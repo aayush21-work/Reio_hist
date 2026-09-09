@@ -5,7 +5,6 @@ script/
 script_files/
 
 
-data_files/
 
 
 cobaya_packages/
@@ -16,10 +15,9 @@ output/
 *.dat
 *.png
 *.pdf
-*.MD
-*.md
 *.swp
 *.log
+*.old
 
 __pycache__/
 *.pyc
