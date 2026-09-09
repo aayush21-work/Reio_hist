@@ -70,16 +70,12 @@ CMB spectra (and `tau_e`) with the model's reionization history.
 
 | path | purpose |
 |---|---|
-| `class_public/` | CLASS (cloned by `build.sh`; compiled binary `./class`, Python binding `classy`). Gitignored. |
-| `music/` | MUSIC initial-conditions generator (cloned by `build.sh`). Gitignored. |
-| `script/` | "script" reionization-box package (cloned by `build.sh`, pip-installed). Gitignored. |
-| `script_files/` | scratch output of `script` (matter fields, ionization maps per redshift). Gitignored. |
-| `data_files/` | observation data: `UVLF_datafiles/`, `QHI_datafiles/`, `Planck_EE_unbinned.txt`. Gitignored. |
-| `cobaya_packages/` | Cobaya external packages (e.g. the Planck 2018 `.clik` likelihoods and data). Gitignored. |
-| `chains/` | Cobaya MCMC output (`.txt` samples, `.covmat`, `.checkpoint`, `.input.yaml`, ...). Gitignored. |
+
+
+| `data_files/` | observation data: `UVLF_datafiles/`, `QHI_datafiles/`, `Planck_EE_unbinned.txt`. |
 | `*.py` | pipeline modules, MCMC infos, plotting/test scripts (see [file reference](#file-reference)). |
 | `check.ipynb`, `check_9params_point.ipynb` | interactive walkthrough notebooks. |
-| `global.ini` | cosmology + `[script]` parameters (the single input you edit). |
+| `global.ini` | cosmology + `[script]` parameters (the single input user edits). |
 | `reiotest.ini`, `reiotest_1.ini`, `reiotest.conf` | CLASS/MUSIC template configs. |
 | `pipeline.log`, `xe_history.dat`, `xe_history_full.dat` | generated during a Track A run. |
 
@@ -87,6 +83,8 @@ CMB spectra (and `tau_e`) with the model's reionization history.
 `mcmc_uvlf_cmb.py`, `mcmc_uvlf_9params.py`) read their data files through
 *relative* paths from `data_files/` (several `os.chdir(DATA_DIR)` at import).
 Please run scripts and notebooks **from the repository root** .
+
+
 ---
 
 ## Setup & build
@@ -454,7 +452,6 @@ Edits the `POINT` cell, then runs all cells to evaluate **exactly** what
 | `requirements.txt` | python dependencies. |
 | `build.sh`, `setup_pipeline.sh` | clone + compile + pip-install + config relocation. |
 | `check.ipynb`, `check_9params_point.ipynb` | walkthrough/evaluation notebooks. |
-| `OPTIMISATION_NOTES_9PARAMS.md` | detailed write-up of the HMF cache + CLASS-resolution optimisations and their verification. |
 | `data_files/UVLF_datafiles/` | UVLF observational LF per redshift (`UVLF_z5p0.txt` ... `UVLF_z13p2.txt`). |
 | `data_files/QHI_datafiles/fullQHIdata.txt` | observed neutral-fraction curve `Q_HI(z)`. |
 | `data_files/Planck_EE_unbinned.txt` | Planck EE unbinned spectrum used for the low-l EE comparison plots. |
